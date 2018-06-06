@@ -2,23 +2,36 @@
 #include <allegro5/allegro_image.h>
 #include <stdio.h>
 
+#include "libs/character/character.h"
+
 const int WIDTH = 640;
 const int HEIGTH = 480;
+const int FPS = 30;
+
+int init_game(void){
+  if(!al_init()){
+	fprintf(stderr, "Falha ao iniciar o allegro.\n");
+	return 0;
+  }
+
+  if(!al_init_image_addon()){
+	fprintf(stderr, "Falha ao iniciar o add-on de imagem.\n");
+	return 0;
+  }
+
+  return 1;
+}
 
 int main(void){
 
   ALLEGRO_DISPLAY *janela = NULL;
   ALLEGRO_BITMAP *background = NULL;
   ALLEGRO_EVENT_QUEUE *fila_eventos = NULL;
+  ALLEGRO_TIMER *timer = NULL;
+  bool redraw = true;
 
-  // Programacao defensiava xD
-  if(!al_init()){
-	fprintf(stderr, "Falha ao iniciar o allegro.\n");
-	return -1;
-  }
-
-  if(!al_init_image_addon()){
-	fprintf(stderr, "Falha ao iniciar o add-on de imagem.\n");
+  if(!init_game()){
+	fprintf(stderr, "Falha ao iniciar o jogo.\n");
 	return -1;
   }
 
@@ -28,39 +41,53 @@ int main(void){
 	return -1;
   }
 
-  background = al_load_bitmap("sprites/background.png");
-  if(!background){
-	fprintf(stderr, "Falha ao criar o background.\n");
-	return -1;
-  }
+  timer = al_create_timer(1.0 / FPS);
 
+  struct Character _player1;
+  struct Character *player1;
+
+  _player1 = new_player(1);
+  player1 = &_player1;
+  player1->sprite = al_load_bitmap("sprites/fenando.png");
+  player1->sprite_size = 32;
+  player1->sprite_len = 4;
+
+  // Iniciando eventos
   fila_eventos = al_create_event_queue();
-  if(!fila_eventos){
-	fprintf(stderr, "Falha ao criar fila de eventos.");
-	return -1;
-  }
-
-  // Iniciando
   al_register_event_source(fila_eventos, al_get_display_event_source(janela));
+  al_register_event_source(fila_eventos, al_get_timer_event_source(timer));
+
+  // TODO - menu
+  background = al_load_bitmap("sprites/background.png");
+
   al_draw_bitmap(background, 0, 0, 0);
+  al_draw_bitmap_region(player1->sprite, player1->current_frame, 0,
+						player1->sprite_size, player1->sprite_size, 0, 0, 0);
   al_flip_display();
 
+  al_start_timer(timer);
   while(1){
 	ALLEGRO_EVENT evento;
-	ALLEGRO_TIMEOUT timeout;
-	al_init_timeout(&timeout, 0.05);
+	al_wait_for_event(fila_eventos, &evento);
 
-	int tem_evento = al_wait_for_event_until(fila_eventos, &evento, &timeout);
-
-	if(tem_evento && evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
+	if(evento.type == ALLEGRO_EVENT_TIMER){
+	  redraw = true;
+	  idle_player(player1);
+	}else if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 	  break;
-	}
 
-	al_draw_bitmap(background, 0, 0, 0);
-	al_flip_display();
+	if(redraw && al_is_event_queue_empty(fila_eventos)){
+	  redraw = false;
+	  al_draw_bitmap(background, 0, 0, 0);
+	  al_draw_bitmap_region(player1->sprite,
+							(player1->current_frame * player1->sprite_size),
+							0, player1->sprite_size, player1->sprite_size, 0, 0, 0);
+	  al_flip_display();
+	}
   }
 
   al_destroy_display(janela);
+  al_destroy_bitmap(background);
   al_destroy_event_queue(fila_eventos);
 
   return 0;
