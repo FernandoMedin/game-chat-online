@@ -15,6 +15,6 @@ struct Character new_player(int player_preset);
 
 void idle_player(struct Character *player);
 
-void move_player(struct Character *player);
+void move_player(struct Character *player, int movement, int width, int height);
 
 #endif // CHARACTER_H_

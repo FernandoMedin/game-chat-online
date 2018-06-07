@@ -19,6 +19,11 @@ int init_game(void){
 	return 0;
   }
 
+  if(!al_install_keyboard()){
+	fprintf(stderr, "Falha ao iniciar o teclado.\n");
+	return 0;
+  }
+
   return 1;
 }
 
@@ -40,12 +45,14 @@ int main(void){
 	fprintf(stderr, "Falha ao criar a janela.\n");
 	return -1;
   }
+  al_set_window_title(janela, "Game Chat Online");
 
   timer = al_create_timer(1.0 / FPS);
 
   struct Character _player1;
   struct Character *player1;
 
+  // Precisa ser adicionado dinamicamente
   _player1 = new_player(1);
   player1 = &_player1;
   player1->sprite = al_load_bitmap("sprites/fenando.png");
@@ -56,6 +63,7 @@ int main(void){
   fila_eventos = al_create_event_queue();
   al_register_event_source(fila_eventos, al_get_display_event_source(janela));
   al_register_event_source(fila_eventos, al_get_timer_event_source(timer));
+  al_register_event_source(fila_eventos, al_get_keyboard_event_source());
 
   // TODO - menu
   background = al_load_bitmap("sprites/background.png");
@@ -75,13 +83,32 @@ int main(void){
 	  idle_player(player1);
 	}else if(evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 	  break;
+	else if(evento.type == ALLEGRO_EVENT_KEY_DOWN){
+	  switch(evento.keyboard.keycode){
+		case ALLEGRO_KEY_UP:
+		  move_player(player1, 1, WIDTH, HEIGTH);
+		  break;
+		case ALLEGRO_KEY_DOWN:
+		  move_player(player1, 2, WIDTH, HEIGTH);
+		  break;
+		case ALLEGRO_KEY_LEFT:
+		  move_player(player1, 3, WIDTH, HEIGTH);
+		  break;
+		case ALLEGRO_KEY_RIGHT:
+		  move_player(player1, 4, WIDTH, HEIGTH);
+		  break;
+	  }
+	}
 
 	if(redraw && al_is_event_queue_empty(fila_eventos)){
 	  redraw = false;
 	  al_draw_bitmap(background, 0, 0, 0);
 	  al_draw_bitmap_region(player1->sprite,
-							(player1->current_frame * player1->sprite_size),
-							0, player1->sprite_size, player1->sprite_size, 0, 0, 0);
+							(player1->current_frame * player1->sprite_size), 0,
+							player1->sprite_size,
+							player1->sprite_size,
+							player1->posx,
+							player1->posy, 0);
 	  al_flip_display();
 	}
   }
