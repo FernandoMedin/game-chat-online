@@ -45,6 +45,7 @@ void idle_player(struct Character *player){
 void move_player(struct Character *player, int movement, int width, int height){
   // TODO - Adicionar movimentos diagonais
   // TODO - Movimentacao com tecla pressionada
+  // Provavelmente setar o speed no Strut, ja que nem todos os sprites tem o mesmo delay
   int movement_speed = 12;
 
   switch(movement){

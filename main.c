@@ -55,7 +55,7 @@ int main(void){
   // Precisa ser adicionado dinamicamente
   _player1 = new_player(1);
   player1 = &_player1;
-  player1->sprite = al_load_bitmap("sprites/fenando.png");
+  player1->sprite = al_load_bitmap("sprites/fenando/fenando.png");
   player1->sprite_size = 32;
   player1->sprite_len = 4;
 
@@ -66,7 +66,7 @@ int main(void){
   al_register_event_source(fila_eventos, al_get_keyboard_event_source());
 
   // TODO - menu
-  background = al_load_bitmap("sprites/background.png");
+  background = al_load_bitmap("sprites/background/background.png");
 
   al_draw_bitmap(background, 0, 0, 0);
   al_draw_bitmap_region(player1->sprite, player1->current_frame, 0,
